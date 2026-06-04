@@ -41,7 +41,6 @@ export function getReportingRange(targetDate: Date = new Date()) {
 }
 
 const CHANNELS_TO_FETCH = [
-  { handle: "@plus_tv_official", isCompany: true },
   { handle: "@samsungsecurities", isCompany: false },
   { handle: "@SmartMoney0", isCompany: false },
   { handle: "@nhinvest_login", isCompany: false }

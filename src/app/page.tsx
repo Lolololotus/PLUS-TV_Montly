@@ -50,8 +50,8 @@ export default function DashboardPage() {
   // 필터 1: 비디오 형식 필터 (전체/동영상/Shorts)
   const [activeTab, setActiveTab] = useState<'all' | 'video' | 'shorts'>('all');
   
-  // 필터 2: 채널별 필터 (전체/PLUS/삼성/미래/NH)
-  const [selectedChannel, setSelectedChannel] = useState<'all' | 'plus' | 'samsung' | 'smart' | 'nh'>('all');
+  // 필터 2: 채널별 필터 (전체/삼성/미래/NH)
+  const [selectedChannel, setSelectedChannel] = useState<'all' | 'samsung' | 'smart' | 'nh'>('all');
   
   // 동적 리포팅 월간 옵션 목록 (최근 5개월)
   const [reportingMonths, setReportingMonths] = useState<ReportingMonth[]>([]);
@@ -159,9 +159,7 @@ export default function DashboardPage() {
     
     // 2. 채널별 필터 적용
     let channelMatch = true;
-    if (selectedChannel === 'plus') {
-      channelMatch = v.isCompany; // 자사 PLUS TV 여부
-    } else if (selectedChannel === 'samsung') {
+    if (selectedChannel === 'samsung') {
       channelMatch = v.channelName.includes('삼성증권');
     } else if (selectedChannel === 'smart') {
       channelMatch = v.channelName.includes('스마트머니');
@@ -262,81 +260,12 @@ export default function DashboardPage() {
                 월간 유튜브 스코어보드
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {channels.map(channel => {
                   const stats = getUploadStatsForMonth(channel);
                   const compStats = getComparisonStats(channel);
                   
-                  return channel.isCompany ? (
-                    /* PLUS TV 자사 카드 - 압도적인 시각화 */
-                    <div 
-                      key={channel.id} 
-                      className="bg-white border-2 border-plus-orange rounded-2xl p-5 shadow-md relative overflow-hidden flex flex-col justify-between h-52 transition-all duration-300 hover:shadow-lg cursor-pointer"
-                      onClick={() => setSelectedChannel('plus')}
-                      title="클릭 시 하단 테이블을 한화 PLUS TV 콘텐츠로 필터링합니다"
-                    >
-                      {/* 로고 및 채널명 */}
-                      <div className="flex items-center gap-3">
-                        <img 
-                          src={channel.logo} 
-                          alt={channel.name} 
-                          className="w-10 h-10 rounded-full border border-plus-orange/20 object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&w=80&q=80"
-                          }}
-                        />
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <h3 className="font-bold text-slate-900 text-sm leading-none">{channel.name.replace("한화자산운용 ", "")}</h3>
-                            <span className="bg-plus-orange text-white text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wide shrink-0">
-                              자사
-                            </span>
-                          </div>
-                          <span className="text-xs text-slate-500">{channel.handle}</span>
-                        </div>
-                      </div>
-
-                      {/* 주요 성과 수치 */}
-                      <div className="grid grid-cols-2 gap-4 mt-3 border-t border-slate-100 pt-3">
-                        <div>
-                          <p className="text-[11px] text-slate-400 font-medium leading-none">총 구독자 수</p>
-                          <p className="text-2xl font-black text-plus-orange mt-1 tracking-tight">
-                            {channel.subscribersText}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[11px] text-slate-400 font-medium leading-none">선택 월간 업로드</p>
-                          <div className="flex items-baseline gap-1 mt-1">
-                            <p className="text-2xl font-black text-plus-orange tracking-tight">{stats.total}건</p>
-                            <span className="text-[10px] text-slate-500 font-medium shrink-0">
-                              ({stats.videos}/{stats.shorts})
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 이번 달 vs 지난달 비교 지표 상시 출력 */}
-                      <div className="flex items-center justify-between text-[10px] text-slate-500 mt-2 pt-2 border-t border-slate-50/60 font-semibold">
-                        <div className="flex gap-2">
-                          <span>이번달: <strong className="text-plus-orange">{compStats.thisMonth}건</strong></span>
-                          <span className="text-slate-200">|</span>
-                          <span>지난달: <strong className="text-slate-600">{compStats.lastMonth}건</strong></span>
-                        </div>
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-black tracking-tighter ${
-                          compStats.diff > 0 
-                            ? 'bg-red-50 text-red-600 border border-red-100/50' 
-                            : compStats.diff < 0 
-                              ? 'bg-blue-50 text-blue-600 border border-blue-100/50' 
-                              : 'bg-slate-50 text-slate-500 border border-slate-200/50'
-                        }`}>
-                          {compStats.diff > 0 ? `▲ 이번달 +${compStats.diff}건` : compStats.diff < 0 ? `▼ 이번달 -${Math.abs(compStats.diff)}건` : '전달과 동일'}
-                        </span>
-                      </div>
-                      
-                      {/* 백그라운드 PLUS TV 오렌지 포인트 */}
-                      <div className="absolute right-0 top-0 h-full w-1.5 bg-plus-orange"></div>
-                    </div>
-                  ) : (
+                  return (
                     /* 경쟁사 카드 - 차분하게 톤다운 처리 */
                     <div 
                       key={channel.id} 
@@ -430,16 +359,7 @@ export default function DashboardPage() {
                     >
                       전체 채널
                     </button>
-                    <button
-                      onClick={() => setSelectedChannel('plus')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                        selectedChannel === 'plus'
-                          ? 'bg-plus-orange text-white shadow-sm'
-                          : 'text-slate-500 hover:text-slate-800'
-                      }`}
-                    >
-                      PLUS TV (자사)
-                    </button>
+
                     <button
                       onClick={() => setSelectedChannel('samsung')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
