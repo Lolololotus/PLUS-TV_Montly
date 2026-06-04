@@ -121,12 +121,12 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
         subscribersText = `${subscriberCount.toLocaleString()}명`;
       }
 
-      // 2. 업로드 재생목록에서 최근 동영상 조회 (페이징을 적용하여 최대 100개 또는 4개월 전 데이터까지 수집)
+      // 2. 업로드 재생목록에서 최근 동영상 조회 (페이징을 적용하여 최대 200개 또는 4개월 전 데이터까지 수집)
       let videoIds: string[] = [];
       const tempVideos: any[] = [];
       let nextPageToken = "";
       let pageCount = 0;
-      const maxPages = 2; // 최대 2페이지(100개 비디오) 수집
+      const maxPages = 4; // 최대 4페이지(200개 비디오) 수집
       let reachedEnd = false;
 
       while (pageCount < maxPages && !reachedEnd) {
@@ -171,72 +171,86 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
         pageCount++;
       }
 
-      // API 쿼리 안전성(URI 길이 초과 방지)을 위해 최대 50개 영상으로 제한
-      if (videoIds.length > 50) {
-        videoIds = videoIds.slice(0, 50);
-        tempVideos.splice(50);
-      }
-
       const finalVideos: VideoItem[] = [];
 
       // 3. 필터링된 영상이 있으면 상세 정보(러닝타임 등) 일괄 조회
       if (videoIds.length > 0) {
-        const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoIds.join(',')}&key=${activeKey}`;
-        const detailsRes = await fetch(detailsUrl, { cache: 'no-store' });
+        // videos.list API는 한번에 최대 50개까지만 조회가 가능하므로 청크(chunk) 단위 분할 조회 적용
+        const detailItems: any[] = [];
+        const chunkSize = 50;
         
-        if (detailsRes.ok) {
-          const detailsData = await detailsRes.json();
-          const detailItems = detailsData.items || [];
-
-          // 모든 비디오의 쇼츠 여부를 HEAD 요청으로 실시간 검증 (병렬 처리)
-          const shortsChecks = await Promise.all(
-            tempVideos.map(async (tempVideo) => {
-              const isShort = await checkIfShorts(tempVideo.id);
-              return { id: tempVideo.id, isShort };
-            })
-          );
-          const shortsMap = new Map<string, boolean | null>(
-            shortsChecks.map(c => [c.id, c.isShort])
-          );
-
-          for (const tempVideo of tempVideos) {
-            const detailItem = detailItems.find((d: any) => d.id === tempVideo.id);
-            let duration = "00:00";
-            let durationSeconds = 0;
-            let videoType: 'video' | 'shorts' = 'video';
-
-            if (detailItem) {
-              const parsedDuration = parseISODuration(detailItem.contentDetails.duration);
-              duration = parsedDuration.text;
-              durationSeconds = parsedDuration.seconds;
-              
-              // 1. HTTP HEAD 검증 결과 사용
-              const headCheck = shortsMap.get(tempVideo.id);
-              if (headCheck !== undefined && headCheck !== null) {
-                videoType = headCheck ? 'shorts' : 'video';
-              } else {
-                // 2. HTTP 검증 실패 시 기존 duration 기반으로 폴백
-                videoType = durationSeconds <= 60 ? 'shorts' : 'video';
-              }
-              
-              // 상세 정보의 maxres 썸네일이 있을 시 업데이트
-              if (detailItem.snippet.thumbnails?.maxres?.url) {
-                tempVideo.thumbnail = detailItem.snippet.thumbnails.maxres.url;
-              }
+        for (let i = 0; i < videoIds.length; i += chunkSize) {
+          const chunk = videoIds.slice(i, i + chunkSize);
+          const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${chunk.join(',')}&key=${activeKey}`;
+          const detailsRes = await fetch(detailsUrl, { cache: 'no-store' });
+          
+          if (detailsRes.ok) {
+            const detailsData = await detailsRes.json();
+            if (detailsData.items) {
+              detailItems.push(...detailsData.items);
             }
-
-            finalVideos.push({
-              id: tempVideo.id,
-              title: tempVideo.title,
-              thumbnail: tempVideo.thumbnail,
-              duration,
-              durationSeconds,
-              publishedAt: tempVideo.publishedAt,
-              description: tempVideo.description,
-              type: videoType,
-              videoUrl: `https://www.youtube.com/watch?v=${tempVideo.id}`
-            });
           }
+        }
+
+        // 모든 비디오의 쇼츠 여부를 실시간 검증 (병렬 처리)
+        // 불필요한 HEAD 네트워크 요청을 제거하기 위해, 60초 초과 비디오는 HEAD 요청 없이 바로 video로 분류 처리하여 성능을 극대화합니다.
+        const shortsChecks = await Promise.all(
+          tempVideos.map(async (tempVideo) => {
+            const detailItem = detailItems.find((d: any) => d.id === tempVideo.id);
+            let durationSeconds = 0;
+            if (detailItem) {
+              durationSeconds = parseISODuration(detailItem.contentDetails.duration).seconds;
+            }
+            // 60초를 넘어가면 유튜브 쇼츠 정책상 100% 일반 비디오임
+            if (durationSeconds > 60) {
+              return { id: tempVideo.id, isShort: false };
+            }
+            // 60초 이하인 비디오만 HTTP HEAD 검증을 거침
+            const isShort = await checkIfShorts(tempVideo.id);
+            return { id: tempVideo.id, isShort };
+          })
+        );
+        const shortsMap = new Map<string, boolean | null>(
+          shortsChecks.map(c => [c.id, c.isShort])
+        );
+
+        for (const tempVideo of tempVideos) {
+          const detailItem = detailItems.find((d: any) => d.id === tempVideo.id);
+          let duration = "00:00";
+          let durationSeconds = 0;
+          let videoType: 'video' | 'shorts' = 'video';
+
+          if (detailItem) {
+            const parsedDuration = parseISODuration(detailItem.contentDetails.duration);
+            duration = parsedDuration.text;
+            durationSeconds = parsedDuration.seconds;
+            
+            // 1. HTTP HEAD 검증 결과 사용
+            const headCheck = shortsMap.get(tempVideo.id);
+            if (headCheck !== undefined && headCheck !== null) {
+              videoType = headCheck ? 'shorts' : 'video';
+            } else {
+              // 2. HTTP 검증 실패 시 기존 duration 기반으로 폴백
+              videoType = durationSeconds <= 60 ? 'shorts' : 'video';
+            }
+            
+            // 상세 정보의 maxres 썸네일이 있을 시 업데이트
+            if (detailItem.snippet.thumbnails?.maxres?.url) {
+              tempVideo.thumbnail = detailItem.snippet.thumbnails.maxres.url;
+            }
+          }
+
+          finalVideos.push({
+            id: tempVideo.id,
+            title: tempVideo.title,
+            thumbnail: tempVideo.thumbnail,
+            duration,
+            durationSeconds,
+            publishedAt: tempVideo.publishedAt,
+            description: tempVideo.description,
+            type: videoType,
+            videoUrl: `https://www.youtube.com/watch?v=${tempVideo.id}`
+          });
         }
       }
 
