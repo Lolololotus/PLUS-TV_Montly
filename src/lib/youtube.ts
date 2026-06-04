@@ -180,7 +180,7 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
         
         for (let i = 0; i < videoIds.length; i += chunkSize) {
           const chunk = videoIds.slice(i, i + chunkSize);
-          const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${chunk.join(',')}&key=${activeKey}`;
+          const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,liveStreamingDetails&id=${chunk.join(',')}&key=${activeKey}`;
           const detailsRes = await fetch(detailsUrl, { cache: 'no-store' });
           
           if (detailsRes.ok) {
@@ -192,19 +192,21 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
         }
 
         // 모든 비디오의 쇼츠 여부를 실시간 검증 (병렬 처리)
-        // 불필요한 HEAD 네트워크 요청을 제거하기 위해, 60초 초과 비디오는 HEAD 요청 없이 바로 video로 분류 처리하여 성능을 극대화합니다.
+        // 불필요한 HEAD 네트워크 요청을 제거하기 위해, 라이브이거나 180초(3분)를 초과하는 비디오는 HEAD 요청 없이 바로 분류합니다.
         const shortsChecks = await Promise.all(
           tempVideos.map(async (tempVideo) => {
             const detailItem = detailItems.find((d: any) => d.id === tempVideo.id);
+            let isLive = false;
             let durationSeconds = 0;
             if (detailItem) {
+              isLive = !!detailItem.liveStreamingDetails;
               durationSeconds = parseISODuration(detailItem.contentDetails.duration).seconds;
             }
-            // 60초를 넘어가면 유튜브 쇼츠 정책상 100% 일반 비디오임
-            if (durationSeconds > 60) {
+            // 라이브 스트리밍이거나 180초(3분)를 초과하는 영상은 100% 쇼츠가 아닙니다.
+            if (isLive || durationSeconds > 180) {
               return { id: tempVideo.id, isShort: false };
             }
-            // 60초 이하인 비디오만 HTTP HEAD 검증을 거침
+            // 3분 이하의 일반 영상만 HTTP HEAD 검증을 통해 실제 쇼츠 탭 등록 여부를 판별합니다.
             const isShort = await checkIfShorts(tempVideo.id);
             return { id: tempVideo.id, isShort };
           })
@@ -217,20 +219,27 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
           const detailItem = detailItems.find((d: any) => d.id === tempVideo.id);
           let duration = "00:00";
           let durationSeconds = 0;
-          let videoType: 'video' | 'shorts' = 'video';
+          let videoType: 'video' | 'shorts' | 'live' = 'video';
+          let isLive = false;
 
           if (detailItem) {
             const parsedDuration = parseISODuration(detailItem.contentDetails.duration);
             duration = parsedDuration.text;
             durationSeconds = parsedDuration.seconds;
             
-            // 1. HTTP HEAD 검증 결과 사용
-            const headCheck = shortsMap.get(tempVideo.id);
-            if (headCheck !== undefined && headCheck !== null) {
-              videoType = headCheck ? 'shorts' : 'video';
+            isLive = !!detailItem.liveStreamingDetails;
+            
+            if (isLive) {
+              videoType = 'live';
             } else {
-              // 2. HTTP 검증 실패 시 기존 duration 기반으로 폴백
-              videoType = durationSeconds <= 60 ? 'shorts' : 'video';
+              // 1. HTTP HEAD 검증 결과 사용
+              const headCheck = shortsMap.get(tempVideo.id);
+              if (headCheck !== undefined && headCheck !== null) {
+                videoType = headCheck ? 'shorts' : 'video';
+              } else {
+                // 2. HTTP 검증 실패 시 기존 duration 기반으로 폴백 (새 정책 기준 60초)
+                videoType = durationSeconds <= 60 ? 'shorts' : 'video';
+              }
             }
             
             // 상세 정보의 maxres 썸네일이 있을 시 업데이트
@@ -248,7 +257,7 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
             publishedAt: tempVideo.publishedAt,
             description: tempVideo.description,
             type: videoType,
-            videoUrl: `https://www.youtube.com/watch?v=${tempVideo.id}`
+            videoUrl: isLive ? `https://www.youtube.com/live/${tempVideo.id}` : `https://www.youtube.com/watch?v=${tempVideo.id}`
           });
         }
       }

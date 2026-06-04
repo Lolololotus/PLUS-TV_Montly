@@ -6,7 +6,7 @@ export interface VideoItem {
   durationSeconds: number;
   publishedAt: string; // ISO String
   description: string;
-  type: 'video' | 'shorts';
+  type: 'video' | 'shorts' | 'live';
   videoUrl: string;
 }
 

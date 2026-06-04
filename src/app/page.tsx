@@ -47,8 +47,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   
-  // 필터 1: 비디오 형식 필터 (전체/동영상/Shorts)
-  const [activeTab, setActiveTab] = useState<'all' | 'video' | 'shorts'>('all');
+  // 필터 1: 비디오 형식 필터 (전체/동영상/Shorts/라이브)
+  const [activeTab, setActiveTab] = useState<'all' | 'video' | 'shorts' | 'live'>('all');
   
   // 필터 2: 채널별 필터 (전체/삼성/미래/NH)
   const [selectedChannel, setSelectedChannel] = useState<'all' | 'samsung' | 'smart' | 'nh'>('all');
@@ -170,14 +170,15 @@ export default function DashboardPage() {
     return formatMatch && channelMatch;
   });
 
-  // 선택된 월간에 따른 채널별 업로드 통계(Video/Shorts 분리) 계산
+  // 선택된 월간에 따른 채널별 업로드 통계(동영상/Shorts/라이브 분리) 계산
   const getUploadStatsForMonth = (channel: ChannelInfo) => {
     const selectedMonth = getSelectedMonth();
     const monthVideos = getFilteredVideosForSelectedMonth(channel.videos, selectedMonth);
     
     const videos = monthVideos.filter(v => v.type === 'video').length;
     const shorts = monthVideos.filter(v => v.type === 'shorts').length;
-    return { videos, shorts, total: videos + shorts };
+    const live = monthVideos.filter(v => v.type === 'live').length;
+    return { videos, shorts, live, total: videos + shorts + live };
   };
 
   return (
@@ -307,7 +308,7 @@ export default function DashboardPage() {
                           <div className="flex items-baseline gap-1 mt-1">
                             <p className="text-xl font-bold text-slate-600 tracking-tight">{stats.total}건</p>
                             <span className="text-[10px] text-slate-400 font-medium shrink-0">
-                              ({stats.videos}/{stats.shorts})
+                              (동영상 {stats.videos} / 쇼츠 {stats.shorts} / 라이브 {stats.live})
                             </span>
                           </div>
                         </div>
@@ -426,6 +427,16 @@ export default function DashboardPage() {
                     >
                       Shorts만
                     </button>
+                    <button
+                      onClick={() => setActiveTab('live')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        activeTab === 'live'
+                          ? 'bg-white text-plus-orange shadow-sm'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      라이브만
+                    </button>
                   </div>
                   
                 </div>
@@ -500,6 +511,10 @@ export default function DashboardPage() {
                               {video.type === 'shorts' ? (
                                 <span className="bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                                   Shorts
+                                </span>
+                              ) : video.type === 'live' ? (
+                                <span className="bg-purple-50 text-purple-700 border border-purple-100 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                  Live
                                 </span>
                               ) : (
                                 <span className="bg-sky-50 text-sky-700 border border-sky-100 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
