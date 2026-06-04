@@ -194,7 +194,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold tracking-tight text-slate-900">유튜브 경쟁사 월간 모니터링 대시보드</h1>
-              <p className="text-xs text-slate-500 mt-0.5">한화자산운용 PLUS TV 마케팅 의사결정 지원 플랫폼</p>
+              <p className="text-xs text-slate-500 mt-0.5">PLUS TV 마케팅 의사결정 지원 플랫폼</p>
             </div>
           </div>
 
