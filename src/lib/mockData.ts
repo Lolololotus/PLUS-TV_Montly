@@ -8,6 +8,7 @@ export interface VideoItem {
   description: string;
   type: 'video' | 'shorts' | 'live';
   videoUrl: string;
+  viewCount: number; // 조회수 (숫자)
 }
 
 export interface ChannelInfo {
@@ -22,7 +23,6 @@ export interface ChannelInfo {
 }
 
 // 오늘 기준 상대 날짜(Days ago) 계산용 헬퍼 함수
-// 이를 통해 대시보드를 로드할 때마다 가데이터의 날짜가 항상 "이번 주"와 "지난주" 범위 안에 최신화되어 안착합니다.
 export function getPastDateString(daysAgo: number, timeStr: string = "10:00:00Z"): string {
   const d = new Date();
   d.setDate(d.getDate() - daysAgo);
@@ -49,7 +49,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(1, "14:00:00Z"), // 오늘 기준 1일 전 (이번 달 - 6월)
         description: "글로벌 테크 리포트 라이브! AI 연산의 패러다임이 클라우드에서 온디바이스로 이동하는 현재, 가장 큰 도약이 기대되는 아시아와 미국의 AI 설계 및 파운드리 관련 핵심 밸류체인을 삼성증권 전문 애널리스트가 전격 브리핑합니다.",
         type: "video",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 185000
       },
       {
         id: "samsung-s1",
@@ -60,7 +61,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(2, "11:00:00Z"), // 오늘 기준 2일 전 (이번 달 - 6월)
         description: "금리가 오르면 채권 가격은 떨어집니다. 왜 그럴까요? 기초 금융 원리를 비유를 통해 딱 30초 만에 명쾌하게 마스터하세요! #shorts #삼성증권 #채권투자 #재테크초보",
         type: "shorts",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 342000
       },
       {
         id: "samsung-v2",
@@ -71,7 +73,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(8, "10:30:00Z"), // 오늘 기준 8일 전 (지난달 - 5월)
         description: "변동성이 큰 주식형 월배당 상품 대신 견조한 이자 수익을 추구하는 미국 국채 및 글로벌 신용 회사채 ETF의 매력! 세액공제를 받으면서 동시에 정기 소득을 안착시키는 현실적인 매매 시나리오를 공유합니다.",
         type: "video",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 78000
       },
       {
         id: "samsung-s2",
@@ -82,7 +85,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(15, "13:00:00Z"), // 오늘 기준 15일 전 (지난달 - 5월)
         description: "무주택 세대주라면 필수! 주택청약 연간 납입액의 최대 40%까지 소득공제 받는 기준과 주의사항을 한눈에 알아보세요. #shorts #연말정산 #소득공제 #삼성증권",
         type: "shorts",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 125000
       },
       {
         id: "samsung-v3",
@@ -93,7 +97,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(36, "09:00:00Z"), // 오늘 기준 36일 전 (2달 전 - 4월)
         description: "글로벌 매크로 긴급 진단! 공화당과 민주당의 조세제도, 친환경 에너지 및 반도체 산업 규제 방향성에 따른 최대 수혜주와 피해 업종을 계량적으로 분석합니다. 성공적인 하반기 자산 배분의 나침반이 될 것입니다.",
         type: "video",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 42000
       },
       {
         id: "samsung-s3",
@@ -104,7 +109,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(48, "17:00:00Z"), // 오늘 기준 48일 전 (2달 전 - 4월)
         description: "비싼 주가 때문에 매수를 망설였던 해외 빅테크 주식들! 삼성증권 앱에서 단돈 1천 원 단위로 쪼개어 실시간 적립식 투자를 설정하는 절차를 정리해 드립니다. #shorts #해외주식 #테슬라 #엔비디아",
         type: "shorts",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 98000
       }
     ]
   },
@@ -126,7 +132,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(2, "08:00:00Z"), // 오늘 기준 2일 전 (이번 달 - 6월)
         description: "어닝 시즌 개막! M7 기업들의 인프라 투자 지속 여부와 클라우드/AI 매출 성장률 팩트 체크. 미래에셋 리서치 센터의 냉철한 시각과 모델링을 기반으로 한 향후 시장 조정기에서의 분할 매수 밴드 가이드라인을 제시합니다.",
         type: "video",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 96000
       },
       {
         id: "mirae-v2",
@@ -137,7 +144,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(14, "09:00:00Z"), // 오늘 기준 14일 전 (지난달 - 5월)
         description: "적립식 투자의 복리 효과를 실제 시뮬레이션 데이터를 통해 명확하게 파악해 봅니다. 평균 단가 인하 효과(Cost Averaging)가 하락장 및 횡보장에서 빛을 발하는 기전과, 바쁜 투자자들을 위한 주식형 ETF 연동 적립 셋팅 방법을 상세 분석합니다.",
         type: "video",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 54000
       },
       {
         id: "mirae-s1",
@@ -148,7 +156,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(5, "11:00:00Z"), // 오늘 기준 5일 전 (지난달 - 5월)
         description: "DC형 퇴직연금이나 개인형 IRP를 가입해 두고 그대로 방치해서 연 1%대 금리만 받고 계신가요? 정부에서 지정한 자동 자산 운용 상품(디폴트옵션) 설정으로 수익률을 끌어올릴 수 있는 지름길을 단 50초 안에 확인하세요! #shorts #디폴트옵션 #퇴직연금 #IRP",
         type: "shorts",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 215000
       },
       {
         id: "mirae-v3",
@@ -159,7 +168,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(50, "17:00:00Z"), // 오늘 기준 50일 전 (2달 전 - 4월)
         description: "넥스트 차이나로 확실히 공고화된 인도 시장! 거대한 내수 시장과 정부의 적극적인 인프라 확충 수혜를 한몸에 받는 초일류 인도 인프라 대기업 리스트와 이를 가장 간편하게 분산 매수할 수 있는 실무 테크닉을 공유합니다.",
         type: "video",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 31000
       }
     ]
   },
@@ -181,7 +191,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(3, "08:00:00Z"), // 오늘 기준 3일 전 (이번 달 - 6월)
         description: "NH투자증권 리서치본부가 전망하는 2026 중기 금융 전망 라이브! 기준 금리 동결 및 점진적 인하 사이클 속에서 채권, 리츠, 고배당주 포트폴리오의 비중 최적화 방식을 제시해 드립니다.",
         type: "video",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 67000
       },
       {
         id: "nh-v2",
@@ -192,7 +203,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(11, "09:00:00Z"), // 오늘 기준 11일 전 (지난달 - 5월)
         description: "금리 인하 베팅을 위해 3배 레버리지 장기채 ETF에 장기 투자하면 계좌 녹는다는 경고, 다 이유가 있습니다. 기초 지수가 등락을 거듭하며 횡보할 때 가치가 갉아먹히는 계량적 메커니즘을 상세히 예시로 설명해 드립니다.",
         type: "video",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 38000
       },
       {
         id: "nh-s1",
@@ -203,7 +215,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(17, "17:00:00Z"), // 오늘 기준 17일 전 (지난달 - 5월)
         description: "대표적인 안전자산 금! 하지만 투자 방식에 따라 배당소득세(15.4%)가 부과되거나 비과세가 될 수 있다는 사실 아셨나요? 실무적으로 가장 경제적인 투자 통로를 알려드립니다! #shorts #금투자 #재테크 #절세",
         type: "shorts",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 142000
       },
       {
         id: "nh-v3",
@@ -214,7 +227,8 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         publishedAt: getPastDateString(42, "09:30:00Z"), // 오늘 기준 42일 전 (2달 전 - 4월)
         description: "미성년 자녀에게 10년 단위로 공제받는 증여 비과세 한도 2,000만 원(성년 5,000만 원)을 120% 활용하는 증여 매니지먼트. 주가가 저평가되어 있는 우량 성장주를 사전 증여해 주었을 때의 절세 장점과 증여신고 홈택스 매뉴얼을 안내합니다.",
         type: "video",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 25000
       }
     ]
   }

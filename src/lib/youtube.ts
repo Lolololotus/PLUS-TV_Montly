@@ -180,7 +180,7 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
         
         for (let i = 0; i < videoIds.length; i += chunkSize) {
           const chunk = videoIds.slice(i, i + chunkSize);
-          const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,liveStreamingDetails&id=${chunk.join(',')}&key=${activeKey}`;
+          const detailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,liveStreamingDetails,statistics&id=${chunk.join(',')}&key=${activeKey}`;
           const detailsRes = await fetch(detailsUrl, { cache: 'no-store' });
           
           if (detailsRes.ok) {
@@ -221,6 +221,7 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
           let durationSeconds = 0;
           let videoType: 'video' | 'shorts' | 'live' = 'video';
           let isLive = false;
+          let viewCount = 0;
 
           if (detailItem) {
             const parsedDuration = parseISODuration(detailItem.contentDetails.duration);
@@ -228,6 +229,7 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
             durationSeconds = parsedDuration.seconds;
             
             isLive = !!detailItem.liveStreamingDetails;
+            viewCount = parseInt(detailItem.statistics?.viewCount || '0', 10);
             
             if (isLive) {
               videoType = 'live';
@@ -257,7 +259,8 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
             publishedAt: tempVideo.publishedAt,
             description: tempVideo.description,
             type: videoType,
-            videoUrl: isLive ? `https://www.youtube.com/live/${tempVideo.id}` : `https://www.youtube.com/watch?v=${tempVideo.id}`
+            videoUrl: isLive ? `https://www.youtube.com/live/${tempVideo.id}` : `https://www.youtube.com/watch?v=${tempVideo.id}`,
+            viewCount
           });
         }
       }

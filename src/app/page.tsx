@@ -42,6 +42,17 @@ function generateReportingMonths(count: number = 5): ReportingMonth[] {
   return months;
 }
 
+function formatViewCount(views?: number): string {
+  if (views === undefined || views === null || isNaN(views)) {
+    return '0회';
+  }
+  if (views >= 10000) {
+    const mans = views / 10000;
+    return `${mans % 1 === 0 ? mans.toFixed(0) : mans.toFixed(1)}만회`;
+  }
+  return `${views.toLocaleString('ko-KR')}회`;
+}
+
 export default function DashboardPage() {
   const [channels, setChannels] = useState<ChannelInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -52,6 +63,9 @@ export default function DashboardPage() {
   
   // 필터 2: 채널별 필터 (전체/삼성/미래/NH)
   const [selectedChannel, setSelectedChannel] = useState<'all' | 'samsung' | 'smart' | 'nh'>('all');
+  
+  // 정렬 필터 (최신순 / 조회수순)
+  const [sortBy, setSortBy] = useState<'date' | 'views'>('date');
   
   // 동적 리포팅 월간 옵션 목록 (최근 5개월)
   const [reportingMonths, setReportingMonths] = useState<ReportingMonth[]>([]);
@@ -149,6 +163,10 @@ export default function DashboardPage() {
         });
       });
     });
+    
+    if (sortBy === 'views') {
+      return all.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+    }
     return all.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
   };
 
@@ -439,6 +457,32 @@ export default function DashboardPage() {
                     </button>
                   </div>
                   
+                  <span className="text-slate-300 hidden lg:inline">|</span>
+
+                  {/* 정렬 필터 탭 */}
+                  <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200/50">
+                    <button
+                      onClick={() => setSortBy('date')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        sortBy === 'date'
+                          ? 'bg-white text-plus-orange shadow-sm'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      최신순
+                    </button>
+                    <button
+                      onClick={() => setSortBy('views')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        sortBy === 'views'
+                          ? 'bg-white text-plus-orange shadow-sm'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      조회수순
+                    </button>
+                  </div>
+                  
                 </div>
               </div>
 
@@ -453,6 +497,7 @@ export default function DashboardPage() {
                         <th className="py-4 px-4 w-40">썸네일 (클릭 시 재생)</th>
                         <th className="py-4 px-6">영상 제목</th>
                         <th className="py-4 px-4 w-28 text-center">러닝타임</th>
+                        <th className="py-4 px-4 w-28 text-center">조회수</th>
                         <th className="py-4 px-4 w-32 text-center">업로드 일시</th>
                         <th className="py-4 px-6 w-80">영상 설명 요약 (설명란)</th>
                       </tr>
@@ -460,7 +505,7 @@ export default function DashboardPage() {
                     <tbody className="divide-y divide-slate-100 text-sm">
                       {filteredVideos.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="text-center py-16 text-slate-400 font-medium">
+                          <td colSpan={8} className="text-center py-16 text-slate-400 font-medium">
                             {selectedChannel !== 'all' || activeTab !== 'all' ? (
                               <div className="space-y-1">
                                 <p>선택하신 조건에 부합하는 영상이 없습니다.</p>
@@ -565,6 +610,11 @@ export default function DashboardPage() {
                             {/* 러닝타임 */}
                             <td className="py-5 px-4 text-center font-mono text-xs text-slate-500">
                               {video.duration}
+                            </td>
+
+                            {/* 조회수 */}
+                            <td className="py-5 px-4 text-center font-mono text-xs text-slate-600 font-bold">
+                              {formatViewCount(video.viewCount)}
                             </td>
 
                             {/* 업로드 일시 */}
