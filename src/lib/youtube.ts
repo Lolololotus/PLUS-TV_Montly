@@ -54,8 +54,9 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
 
   // 넉넉하게 최근 4개월(약 120일) 전부터의 모든 최신 업로드 영상을 API 수준에서 수집하여,
   // 클라이언트 단에서 "이번 달"뿐만 아니라 "지난달", "2달 전" 등 과거 월간 데이터를 누락 없이 정확하게 볼 수 있도록 조치합니다.
+  // 지난달(7월) 데이터를 완벽하게 확보하기 위해 수집 범위를 지난달 1일부터로 최적화 설정합니다.
   const collectStartDate = new Date();
-  collectStartDate.setMonth(collectStartDate.getMonth() - 4);
+  collectStartDate.setMonth(collectStartDate.getMonth() - 1);
   collectStartDate.setDate(1);
   collectStartDate.setHours(0, 0, 0, 0);
 
@@ -126,7 +127,7 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
       const tempVideos: any[] = [];
       let nextPageToken = "";
       let pageCount = 0;
-      const maxPages = 4; // 최대 4페이지(200개 비디오) 수집
+      const maxPages = 8; // 최대 8페이지(400개 비디오) 수집으로 확대하여 7월 데이터 누락 방지
       let reachedEnd = false;
 
       while (pageCount < maxPages && !reachedEnd) {
@@ -200,14 +201,18 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
             let isLive = false;
             let durationSeconds = 0;
             if (detailItem) {
-              isLive = !!detailItem.liveStreamingDetails;
+              isLive = !!detailItem.liveStreamingDetails || detailItem.snippet?.liveBroadcastContent === 'live' || detailItem.snippet?.liveBroadcastContent === 'upcoming';
               durationSeconds = parseISODuration(detailItem.contentDetails.duration).seconds;
             }
             // 라이브 스트리밍이거나 180초(3분)를 초과하는 영상은 100% 쇼츠가 아닙니다.
             if (isLive || durationSeconds > 180) {
               return { id: tempVideo.id, isShort: false };
             }
-            // 3분 이하의 일반 영상만 HTTP HEAD 검증을 통해 실제 쇼츠 탭 등록 여부를 판별합니다.
+            // 60초 이하인 비디오는 100% 쇼츠이므로 HEAD 요청 생략 (네트워크 리소스 최적화)
+            if (durationSeconds <= 60 && durationSeconds > 0) {
+              return { id: tempVideo.id, isShort: true };
+            }
+            // 60초 초과 180초 이하의 경계면 영상만 HTTP HEAD 검증을 거칩니다.
             const isShort = await checkIfShorts(tempVideo.id);
             return { id: tempVideo.id, isShort };
           })
@@ -229,7 +234,7 @@ export async function getDashboardData(apiKey?: string): Promise<{ channels: Cha
             duration = parsedDuration.text;
             durationSeconds = parsedDuration.seconds;
             
-            isLive = !!detailItem.liveStreamingDetails;
+            isLive = !!detailItem.liveStreamingDetails || detailItem.snippet?.liveBroadcastContent === 'live' || detailItem.snippet?.liveBroadcastContent === 'upcoming';
             viewCount = parseInt(detailItem.statistics?.viewCount || '0', 10);
             
             if (isLive) {
