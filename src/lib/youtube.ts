@@ -43,7 +43,8 @@ export function getReportingRange(targetDate: Date = new Date()) {
 const CHANNELS_TO_FETCH = [
   { handle: "@samsungsecurities", isCompany: false },
   { handle: "@SmartMoney0", isCompany: false },
-  { handle: "@nhinvest_login", isCompany: false }
+  { handle: "@nhinvest_login", isCompany: false },
+  { handle: "@3protv", isCompany: false }
 ];
 
 export async function getDashboardData(apiKey?: string): Promise<{ channels: ChannelInfo[]; reportingRange: string; isMock: boolean }> {

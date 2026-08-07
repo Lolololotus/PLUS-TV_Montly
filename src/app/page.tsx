@@ -61,8 +61,8 @@ export default function DashboardPage() {
   // 필터 1: 비디오 형식 필터 (전체/동영상/Shorts/라이브)
   const [activeTab, setActiveTab] = useState<'all' | 'video' | 'shorts' | 'live'>('all');
   
-  // 필터 2: 채널별 필터 (전체/삼성/미래/NH)
-  const [selectedChannel, setSelectedChannel] = useState<'all' | 'samsung' | 'smart' | 'nh'>('all');
+  // 필터 2: 채널별 필터 (전체/삼성/미래/NH/삼프로)
+  const [selectedChannel, setSelectedChannel] = useState<'all' | 'samsung' | 'smart' | 'nh' | 'spro'>('all');
   
   // 정렬 필터 (최신순 / 조회수순)
   const [sortBy, setSortBy] = useState<'date' | 'views'>('date');
@@ -183,6 +183,8 @@ export default function DashboardPage() {
       channelMatch = v.channelName.includes('스마트머니');
     } else if (selectedChannel === 'nh') {
       channelMatch = v.channelName.toLowerCase().includes('nh투자증권') || v.channelName.toLowerCase().includes('nh');
+    } else if (selectedChannel === 'spro') {
+      channelMatch = v.channelName.includes('삼프로') || v.channelName.toLowerCase().includes('3pro');
     }
     
     return formatMatch && channelMatch;
@@ -279,7 +281,7 @@ export default function DashboardPage() {
                 월간 유튜브 스코어보드
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {channels.map(channel => {
                   const stats = getUploadStatsForMonth(channel);
                   const compStats = getComparisonStats(channel);
@@ -291,7 +293,8 @@ export default function DashboardPage() {
                       className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between h-52 transition-all duration-300 hover:shadow-md cursor-pointer relative"
                       onClick={() => setSelectedChannel(
                         channel.name.includes('삼성') ? 'samsung' : 
-                        channel.name.includes('스마트') ? 'smart' : 'nh'
+                        channel.name.includes('스마트') ? 'smart' : 
+                        channel.name.includes('삼프로') ? 'spro' : 'nh'
                       )}
                       title={`클릭 시 하단 테이블을 ${channel.name} 콘텐츠로 필터링합니다`}
                     >
@@ -408,6 +411,16 @@ export default function DashboardPage() {
                       }`}
                     >
                       NH투자증권
+                    </button>
+                    <button
+                      onClick={() => setSelectedChannel('spro')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        selectedChannel === 'spro'
+                          ? 'bg-slate-500 text-white shadow-sm'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                    >
+                      삼프로TV
                     </button>
                   </div>
 

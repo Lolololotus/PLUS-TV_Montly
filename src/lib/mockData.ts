@@ -231,5 +231,52 @@ export const MOCK_CHANNELS: ChannelInfo[] = [
         viewCount: 25000
       }
     ]
+  },
+  {
+    id: "UC3protv",
+    name: "삼프로TV_경제의신과함께",
+    handle: "@3protv",
+    logo: "https://yt3.ggpht.com/ytc/AIdro5kl2-9jOpxe0gW1V_X7R8G8Z-lV_y4T9A=s176-c-k-c0x00ffffff-no-rj",
+    subscribers: 2430000,
+    subscribersText: "243만명",
+    isCompany: false,
+    videos: [
+      {
+        id: "spro-v1",
+        title: "[삼프로TV 라이브] 미 빅테크 실적 발표 파장과 한국 증시 영향 진단",
+        thumbnail: "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=640&q=80",
+        duration: "55:40",
+        durationSeconds: 3340,
+        publishedAt: getPastDateString(1, "08:30:00Z"),
+        description: "미 연준 금리 스탠스와 M7 실적 대공개! 글로벌 경제 패널들이 집중 분석하는 오늘 아침 시황 라이브 쇼입니다.",
+        type: "video",
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 145000
+      },
+      {
+        id: "spro-v2",
+        title: "엔저 현상의 장기화와 일본 증시 사상 최고치 경신, 역발상 투자 기회는 어디에?",
+        thumbnail: "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=640&q=80",
+        duration: "28:10",
+        durationSeconds: 1690,
+        publishedAt: getPastDateString(12, "11:00:00Z"),
+        description: "글로벌 매크로 특집. 엔화 약세 국면 속에서 일본 현지 기업들의 실적 호조 기전과 투자 아이디어를 공유합니다.",
+        type: "video",
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 89000
+      },
+      {
+        id: "spro-s1",
+        title: "[Shorts] 연 5% 복리 적금 vs 배당성장 ETF, 자산 불리는 법 딱 알려드림! 💡",
+        thumbnail: "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=640&q=80",
+        duration: "00:45",
+        durationSeconds: 45,
+        publishedAt: getPastDateString(4, "15:00:00Z"),
+        description: "장기 투자에서 복리의 마법을 누리기 위해 어떤 선택이 유리할지 45초 만에 표로 정리해 드립니다. #shorts #삼프로 #재테크 #배당성장",
+        type: "shorts",
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        viewCount: 295000
+      }
+    ]
   }
 ];
